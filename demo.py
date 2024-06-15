@@ -30,9 +30,16 @@ if args.tranco:
     sites = ["http://" + x for x in latest_list.top(10)]
 
 
-display_mode: Literal["native", "headless", "xvfb"] = "native"
+display_mode: Literal["native", "headless", "xvfb"] = "xvfb"
 if args.headless:
     display_mode = "headless"
+
+# Set proxy settings
+proxy_configs = {
+    'proxy_provider':'oxylabs',
+    'geography':'st-us_california',
+    'proxy_config_file':'proxy_config.env'
+    }
 
 # Loads the default ManagerParams
 # and NUM_BROWSERS copies of the default BrowserParams
@@ -57,6 +64,8 @@ for browser_param in browser_params:
     # Set this value as appropriate for the size of your temp directory
     # if you are running out of space
     browser_param.maximum_profile_size = 50 * (10**20)  # 50 MB = 50 * 2^20 Bytes
+
+    browser_param.custom_params = {'proxy_configs':proxy_configs}
 
 # Update TaskManager configuration (use this for crawl-wide settings)
 manager_params.data_directory = Path("./datadir/")
