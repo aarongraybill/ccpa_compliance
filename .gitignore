@@ -94,3 +94,6 @@ docs/apidoc/
 node_modules
 
 datadir
+
+# Proxy Secrets:
+proxy_config.env
