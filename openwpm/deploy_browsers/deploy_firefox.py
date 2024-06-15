@@ -9,7 +9,7 @@ from typing import Any, Dict, Optional, Tuple
 from easyprocess import EasyProcessError
 from multiprocess import Queue
 from pyvirtualdisplay import Display
-from selenium import webdriver
+from seleniumwire import webdriver
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.firefox.service import Service
 
@@ -18,6 +18,7 @@ from ..config import BrowserParamsInternal, ConfigEncoder, ManagerParamsInternal
 from ..utilities.platform_utils import get_firefox_binary_path
 from . import configure_firefox
 from .selenium_firefox import FirefoxLogInterceptor
+from .proxy_handlers import create_proxies
 
 DEFAULT_SCREEN_RES = (1366, 768)
 logger = logging.getLogger("openwpm")
@@ -129,6 +130,12 @@ def deploy_firefox(
     webdriver_interceptor = FirefoxLogInterceptor(browser_params.browser_id)
     webdriver_interceptor.start()
 
+    seleniumwire_options = {}
+    if browser_params.custom_params['proxy_configs'] is not None:
+        proxies = create_proxies(**browser_params.custom_params['proxy_configs'])
+        seleniumwire_options = seleniumwire_options | {'proxy':proxies}
+
+
     # Set custom prefs. These are set after all of the default prefs to allow
     # our defaults to be overwritten.
     for name, value in browser_params.prefs.items():
@@ -140,13 +147,13 @@ def deploy_firefox(
 
     # Launch the webdriver
     status_queue.put(("STATUS", "Launch Attempted", None))
-
     fo.binary_location = firefox_binary_path
     geckodriver_path = subprocess.check_output(
         "which geckodriver", encoding="utf-8", shell=True
     ).strip()
     driver = webdriver.Firefox(
         options=fo,
+        seleniumwire_options=seleniumwire_options,
         service=Service(
             executable_path=geckodriver_path,
             log_output=open(webdriver_interceptor.fifo, "w"),
