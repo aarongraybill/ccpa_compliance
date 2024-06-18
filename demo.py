@@ -4,7 +4,6 @@ from typing import Literal
 
 import tranco
 
-from custom_command import LinkCountingCommand
 from openwpm.command_sequence import CommandSequence
 from openwpm.commands.browser_commands import GetCommand
 from openwpm.config import BrowserParams, ManagerParams
@@ -35,15 +34,16 @@ if args.headless:
     display_mode = "headless"
 
 # Set proxy settings
-proxy_configs = {
-    'proxy_provider':'oxylabs',
-    'geography':'st-us_california',
-    'proxy_config_file':'proxy_config.env'
-    }
+# proxy_configs = {
+#     'proxy_provider':'oxylabs',
+#     'geography':'st-us_california',
+#     'proxy_config_file':'proxy_config.env'
+#     }
+proxy_configs = None
 
 # Loads the default ManagerParams
 # and NUM_BROWSERS copies of the default BrowserParams
-NUM_BROWSERS = 2
+NUM_BROWSERS = 5
 manager_params = ManagerParams(num_browsers=NUM_BROWSERS)
 browser_params = [BrowserParams(display_mode=display_mode) for _ in range(NUM_BROWSERS)]
 
@@ -101,8 +101,10 @@ with TaskManager(
 
         # Start by visiting the page
         command_sequence.append_command(GetCommand(url=site, sleep=3), timeout=60)
-        # Have a look at custom_command.py to see how to implement your own command
-        command_sequence.append_command(LinkCountingCommand())
+
+        #save landing page source
+        command_sequence.get()
+        command_sequence.dump_page_source()
 
         # Run commands across all browsers (simple parallelization)
         manager.execute_command_sequence(command_sequence)
