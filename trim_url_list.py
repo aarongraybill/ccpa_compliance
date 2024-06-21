@@ -33,9 +33,15 @@ tld_whitelist = [
 # Get all of TLDs primarily associated with a specific country
 tld_url = 'https://en.wikipedia.org/w/index.php?title=Country_code_top-level_domain&oldid=1227340805#Unconventional_usage'
 country_tlds = pd.read_html(tld_url,match = 'Commonly used for academic websites')[0]
+country_tlds = country_tlds['Name[3]'].values.tolist()
+
+# URLs of non-profit institutions
+non_prof_tlds = ['.ngo','.ong','.gov','.int','.mil','.edu']
+
+tld_blacklist = country_tlds + non_prof_tlds # "+"" means union in python lists
 
 # Any TLD country-specific that's not white listed will be blacklisted
-tld_blacklist = {s for s in country_tlds['Name[3]'].values}.difference(tld_whitelist)
+tld_blacklist = {t for t in tld_blacklist}.difference(tld_whitelist)
 # remove the "." in ".ru" leaving just "ru" 
 tld_blacklist = {s[1:] for s in tld_blacklist}
 
